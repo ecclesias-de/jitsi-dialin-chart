@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conference-mapper-{{ template "basename" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "labels" . | nindent 4 }}
+    app.kubernetes.io/component: conference-mapper
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: conference-mapper
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels: {{- include "labels" . | nindent 8 }}
+        app.kubernetes.io/component: conference-mapper
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      {{- if .Values.deployment.conferenceMapper.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.deployment.conferenceMapper.imagePullSecrets}}
+      - {{ toYaml . }}
+      {{- end }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.deployment.conferenceMapper.image }}
+        imagePullPolicy: IfNotPresent
+        {{- if .Values.debug.diagnoseMode.conferenceMapper.enabled}}
+        command: {{- toYaml .Values.debug.diagnoseMode.conferenceMapper.command  | nindent 12 }}
+        {{- end}}
+        {{- if .Values.deployment.conferenceMapper.resources }}
+        resources: {{- toYaml .Values.deployment.conferenceMapper.resources | nindent 12 }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 8001
+        {{- if .Values.debug.securityContext.enabled }}
+        securityContext:
+          runAsNonRoot: true
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        {{- end }}
+        volumeMounts:
+        - mountPath: /app/data
+          name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: conference-mapper-{{ template "basename" . }}

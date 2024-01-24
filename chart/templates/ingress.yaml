@@ -1,0 +1,36 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "basename" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  {{- if .Values.ingress.annotations }}
+  annotations: {{ .Values.ingress.annotations | toYaml | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.ingressClass }}
+  ingressClassName: {{ .Values.ingress.ingressClass }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.hostname }}
+      http:
+        paths:
+          - backend:
+              service:
+                name: conference-mapper-{{ template "basename" . }}
+                port:
+                  number: 80
+            path: /conferenceMapper
+            pathType: Exact
+          - backend:
+              service:
+                name: dialin-{{ template "basename" . }}
+                port:
+                  number: 80
+            path: /dialin.json
+            pathType: Exact
+  tls:
+    - hosts:
+        - {{ .Values.ingress.hostname | quote }}
+      secretName: {{ printf "%s-tls" .Values.ingress.hostname }}
+{{- end }}

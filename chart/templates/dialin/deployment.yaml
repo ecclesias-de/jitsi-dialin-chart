@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dialin-{{ template "basename" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "labels" . | nindent 4 }}
+    app.kubernetes.io/component: dialin
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: dialin
+  template:
+    metadata:
+      labels: {{- include "labels" . | nindent 8 }}
+        app.kubernetes.io/component: dialin
+    spec:
+      strategy:
+        type: Recreate
+      securityContext:
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      {{- if .Values.deployment.dialin.imagePullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.deployment.dialin.imagePullSecrets}}
+      - {{ toYaml . }}
+      {{- end }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: {{ .Values.deployment.dialin.image }}
+        imagePullPolicy: IfNotPresent
+        {{- if .Values.debug.diagnoseMode.dialin.enabled}}
+        command: {{- toYaml .Values.debug.diagnoseMode.dialin.command  | nindent 12 }}
+        {{- end}}
+        {{- if .Values.deployment.dialin.resources }}
+        resources: {{- toYaml .Values.deployment.dialin.resources | nindent 12 }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 8080
+        {{- if .Values.debug.securityContext.enabled }}
+        securityContext:
+          runAsNonRoot: true
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        {{- end }}
+        volumeMounts:
+        - name: config
+          mountPath: "/usr/share/nginx/html/"
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: dialin-{{ include "basename" . }}

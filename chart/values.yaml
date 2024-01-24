@@ -1,0 +1,65 @@
+deployment:
+  conferenceMapper:
+    image: ghcr.io/krombel/conferencemapper:master
+    resources:
+      # limits:
+      #   cpu: 1m / 1
+      #   memory: 1Mi / 1Gi
+      # requests:
+      #   cpu: 1m / 1
+      #   memory: 1Mi / 1Gi
+    imagePullSecrets:
+    # - name: secret-name
+  dialin:
+    image: nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim
+    resources:
+      # limits:
+      #   cpu: 1m / 1
+      #   memory: 1Mi / 1Gi
+      # requests:
+      #   cpu: 1m / 1
+      #   memory: 1Mi / 1Gi
+    imagePullSecrets:
+    # - name: secret-name
+    json: |
+      {
+          "message": "Einwahl-Nummern:",
+          "numbers": {
+              "DE": [
+                  "+49-40-23969744"
+              ]
+          },
+          "numbersEnabled": true
+      }
+  pwCheck:
+    prosodyService: #required
+    auth: #required
+    
+ingress:
+  annotations:
+    # kubernetes.io/tls-acme: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt
+  enabled: true
+  hostname: #required
+  ingressClass:
+
+pvc:
+  size: 100Mi
+  storageClass:
+
+debug:
+  diagnoseMode:
+    conferenceMapper:
+      enabled: false
+      command:
+        - /bin/bash
+        - -c
+        - "echo diagnose mode: sleeping infinitely && tail -f /dev/null"
+    dialin:
+      enabled: false
+      command:
+        - /bin/bash
+        - -c
+        - "echo diagnose mode: sleeping infinitely && tail -f /dev/null"
+  securityContext:
+    enabled: true
