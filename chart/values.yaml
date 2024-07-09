@@ -11,7 +11,7 @@ deployment:
     imagePullSecrets:
     # - name: secret-name
   dialin:
-    image: nginxinc/nginx-unprivileged:1.25.3-alpine3.18-slim
+    image: nginxinc/nginx-unprivileged:1.26.1-alpine3.19-slim
     resources:
       # limits:
       #   cpu: 1m / 1
