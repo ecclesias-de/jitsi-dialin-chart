@@ -47,6 +47,10 @@ pvc:
   size: 100Mi
   storageClass:
 
+metadata:
+  team:
+  name:
+
 debug:
   diagnoseMode:
     conferenceMapper:

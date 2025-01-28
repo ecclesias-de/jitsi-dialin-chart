@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
   labels: {{- include "labels" . | nindent 4 }}
     app.kubernetes.io/component: conference-mapper
+    app.kubernetes.io/version: {{ .Values.deployment.conferenceMapper.image }}
 spec:
   replicas: 1
   selector:
@@ -16,6 +17,7 @@ spec:
     metadata:
       labels: {{- include "labels" . | nindent 8 }}
         app.kubernetes.io/component: conference-mapper
+        app.kubernetes.io/version: {{ .Values.deployment.conferenceMapper.image }}
     spec:
       securityContext:
         runAsUser: 1000
