@@ -10,5 +10,5 @@ stages:
 include:
   - component: $CI_SERVER_FQDN/gitlabci-components/helm-build/build@1.1.0
     inputs:
-      name: jitsi-dailin
+      name: jitsi-dialin
       registry_repo: ${CI_REGISTRY_IMAGE}/chart
